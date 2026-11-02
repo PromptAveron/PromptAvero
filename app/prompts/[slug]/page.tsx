@@ -13,8 +13,6 @@ import { SectionHeading } from '@/components/section-heading'
 import { btn } from '@/lib/button-styles'
 import { getPrimaryPublicImage, getPublicContent, getRelatedPublicPrompts, toPublicSummary } from '@/lib/public-content'
 import { tagLabel } from '@/lib/content'
-import { AdSlot } from '@/components/public-integrations'
-import { getPublicSiteSettings } from '@/lib/public-settings'
 import { formatDate } from '@/lib/format'
 import { buildMetadata, categoryPath, promptCanonical, promptJsonLd, promptPath } from '@/lib/seo'
 
@@ -29,7 +27,7 @@ type Params = Promise<{ slug: string }>
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params
-  const [content, settings] = await Promise.all([getPublicContent(), getPublicSiteSettings()])
+  const content = await getPublicContent()
   const prompt = content.prompts.find((item) => item.slug === slug)
   if (!prompt) return {}
   const primary = getPrimaryPublicImage(prompt)
@@ -61,7 +59,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function PromptPage({ params }: { params: Params }) {
   const { slug } = await params
-  const [content, settings] = await Promise.all([getPublicContent(), getPublicSiteSettings()])
+  const content = await getPublicContent()
   const prompt = content.prompts.find((item) => item.slug === slug)
   if (!prompt) notFound()
   const category = content.categories.find((item) => item.slug === prompt.categorySlug)
@@ -96,7 +94,6 @@ export default async function PromptPage({ params }: { params: Params }) {
       <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
         <div className="lg:sticky lg:top-24 lg:self-start">
           <PromptGallery slug={prompt.slug} title={prompt.title} images={prompt.images} />
-          <AdSlot settings={settings} kind="prompt_bottom" />
         </div>
 
         <article className="min-w-0">
@@ -131,8 +128,6 @@ export default async function PromptPage({ params }: { params: Params }) {
             />
             <ShareActions url={canonical} title={prompt.title} />
           </div>
-          <AdSlot settings={settings} kind="prompt_top" />
-
           {details.length > 0 ? (
             <section aria-labelledby="details-heading" className="mt-8">
               <h2 id="details-heading" className="text-sm font-semibold">Prompt details</h2>

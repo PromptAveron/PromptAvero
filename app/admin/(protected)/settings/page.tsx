@@ -1,6 +1,6 @@
 import { saveAdvertisingSettingsAction, saveSettingsAction } from '@/app/admin/actions'
 import { BrandAssetUpload } from '@/components/admin/brand-asset-upload'
-import { getHeadAdCode, getPromptPageAdCodes } from '@/lib/ad-code'
+import { getHeadAdCode } from '@/lib/ad-code'
 import { requireAdmin } from '@/lib/supabase/admin'
 
 function getSettings(value: unknown): Record<string, string | boolean | number> {
@@ -14,10 +14,6 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
   const { data, error } = await supabase.from('site_settings').select('value').eq('key', 'site').maybeSingle()
   if (error) throw new Error(`Could not load site settings: ${error.message}`)
   const settings = getSettings(data?.value)
-  const promptPageAds = getPromptPageAdCodes({
-    ad_code_prompt_top: typeof settings.ad_code_prompt_top === 'string' ? settings.ad_code_prompt_top : undefined,
-    ad_code_prompt_bottom: typeof settings.ad_code_prompt_bottom === 'string' ? settings.ad_code_prompt_bottom : undefined,
-  })
   const inputClass = 'mt-1.5 h-9 w-full rounded-md border border-border bg-card px-3 text-sm font-normal outline-none focus:border-primary'
   return (
     <div className="mx-auto max-w-4xl pt-10 md:pt-0">
@@ -50,24 +46,12 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
         </section>
         <section className="rounded-lg border border-border bg-card p-5 sm:p-6">
           <h2 className="text-sm font-semibold">Advertising</h2>
-          <p className="mt-1 text-xs text-muted-foreground">Ad code runs on public pages only, never in the admin. Placement scripts can access the page DOM and cookies to support ad networks. Only paste code from ad networks you trust.</p>
+          <p className="mt-1 text-xs text-muted-foreground">The configured Monetag zone loads in the public page head. Additional head scripts run on public pages only; only paste code from ad networks you trust.</p>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <label className="flex items-center gap-2 text-xs font-medium sm:col-span-2"><input name="adsense_enabled" type="checkbox" defaultChecked={settings.adsense_enabled === true} className="size-4 accent-primary" />Enable ad placements</label>
-            <label className="text-xs font-medium sm:col-span-2">Global head ad code<textarea name="ad_code_head" rows={6} defaultValue={getHeadAdCode(typeof settings.ad_code_head === 'string' ? settings.ad_code_head : undefined)} placeholder="Paste the ad network code, including its script tags" className={`${inputClass} h-auto resize-y py-2 font-mono text-xs`} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">Added to the document head on public pages. The Monetag zone tag is also loaded automatically. Clear this field to disable this saved head code.</span></label>
-            <label className="text-xs font-medium sm:col-span-2">Explore page ad code (below filters)<textarea name="ad_code_listing" rows={5} defaultValue={String(settings.ad_code_listing ?? '')} placeholder="Paste an ad unit code snippet" className={`${inputClass} h-auto resize-y py-2 font-mono text-xs`} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">Centered below the Explore filters. Enable ad placements above to display it.</span></label>
-            <label className="text-xs font-medium sm:col-span-2">Prompt text ad (shown below the action buttons)<textarea name="ad_code_prompt_top" rows={5} defaultValue={promptPageAds.belowPrompt} placeholder="Paste an ad unit code snippet" className={`${inputClass} h-auto resize-y py-2 font-mono text-xs`} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">This ad code is displayed below the Like, Share Prompt, and Copy Prompt URL controls.</span></label>
-            <label className="text-xs font-medium sm:col-span-2">Like/share/copy ad (shown below the image)<textarea name="ad_code_prompt_bottom" rows={7} defaultValue={promptPageAds.belowImage} placeholder="Paste an ad unit code snippet" className={`${inputClass} h-auto resize-y py-2 font-mono text-xs`} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">This ad code is displayed immediately below the prompt image.</span></label>
+            <label className="text-xs font-medium sm:col-span-2">Additional global head ad code<textarea name="ad_code_head" rows={6} defaultValue={getHeadAdCode(typeof settings.ad_code_head === 'string' ? settings.ad_code_head : undefined)} placeholder="Paste the ad network code, including its script tags" className={`${inputClass} h-auto resize-y py-2 font-mono text-xs`} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">Added to the document head on public pages. Monetag zone 12165665 loads automatically and is not controlled by this field.</span></label>
             <div className="flex justify-end sm:col-span-2"><button formAction={saveAdvertisingSettingsAction} className="h-9 rounded-md bg-primary px-4 text-xs font-medium text-white">Save advertising settings</button></div>
-            <p className="text-[10px] text-muted-foreground sm:col-span-2">These codes are the defaults for prompt pages. Use the advertising switch above to enable or disable ad placements.</p>
-            <p className="text-[10px] text-muted-foreground sm:col-span-2">Each snippet is limited to 20,000 characters. Review applicable privacy requirements before enabling third-party ads or analytics.</p>
-            <details className="text-xs text-muted-foreground sm:col-span-2">
-              <summary className="cursor-pointer font-medium text-foreground">Legacy Google AdSense settings</summary>
-              <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                <label className="text-xs font-medium">Publisher ID<input name="adsense_publisher_id" placeholder="ca-pub-0000000000000000" defaultValue={String(settings.adsense_publisher_id ?? '')} className={inputClass} /></label>
-                <label className="text-xs font-medium">Listing page slot ID<input name="listing_ad_slot_id" inputMode="numeric" defaultValue={String(settings.listing_ad_slot_id ?? '')} className={inputClass} /></label>
-                <label className="text-xs font-medium">Prompt page slot ID (placement 2)<input name="prompt_ad_slot_id" inputMode="numeric" defaultValue={String(settings.prompt_ad_slot_id ?? '')} className={inputClass} /></label>
-              </div>
-            </details>
+            <p className="text-[10px] text-muted-foreground sm:col-span-2">Explore and prompt-detail ad placements have been removed.</p>
+            <p className="text-[10px] text-muted-foreground sm:col-span-2">Review applicable privacy requirements before enabling third-party ads or analytics.</p>
           </div>
         </section>
         <section className="rounded-lg border border-border bg-card p-5 sm:p-6">

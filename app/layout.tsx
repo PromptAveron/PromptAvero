@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Inter_Tight } from 'next/font/google'
 import { SiteChrome } from '@/components/site-chrome'
 import { ThemeProvider } from '@/components/theme-provider'
-import { getHeadAdCode } from '@/lib/ad-code'
 import { siteConfig } from '@/data/site-config'
 import { categories, getAllTags } from '@/lib/content'
 import { websiteJsonLd } from '@/lib/seo'
@@ -11,8 +10,6 @@ import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 const interTight = Inter_Tight({ subsets: ['latin'], variable: '--font-inter-tight', display: 'swap' })
-const SECOND_MONETAG_SCRIPT = 'https://5gvci.com/act/files/tag.min.js?z=12165667'
-
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSiteSettings()
   const favicon = settings.favicon_url
@@ -54,21 +51,6 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const settings = await getPublicSiteSettings()
-  const headAdCode = getHeadAdCode(settings.ad_code_head)
-  const headAdMatch = headAdCode.match(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/i)
-  const headAdScript = headAdMatch?.[2] ?? headAdCode
-  const headAdAttributes = headAdMatch?.[1]
-  const headAdScriptSrc = headAdAttributes?.match(/\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i)
-  const headAdScriptProps = headAdScriptSrc
-    ? Object.fromEntries(
-        Array.from((headAdAttributes ?? '').matchAll(/([^\s=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g))
-          .filter(([ , name ]) => name.toLowerCase() !== 'src')
-          .map(([ , name, doubleQuoted, singleQuoted, unquoted ]) => [
-            name.toLowerCase(),
-            doubleQuoted ?? singleQuoted ?? unquoted ?? true,
-          ]),
-      )
-    : null
   const headerCategories = categories.map(({ name, slug }) => ({ name, slug }))
   const headerTags = getAllTags()
     .slice(0, 8)
@@ -82,14 +64,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             __html: `window.__name=window.__name||function(target,name){Object.defineProperty(target,'name',{value:name,configurable:true});return target}`,
           }}
         />
-        {headAdScriptSrc && headAdScriptProps ? (
-          <script {...headAdScriptProps} src={headAdScriptSrc[1] ?? headAdScriptSrc[2] ?? headAdScriptSrc[3]} />
-        ) : headAdScript.trim() ? (
-          <script dangerouslySetInnerHTML={{ __html: headAdScript }} />
-        ) : null}
-        {!headAdCode.includes(SECOND_MONETAG_SCRIPT) ? (
-          <script src={SECOND_MONETAG_SCRIPT} data-cfasync="false" async />
-        ) : null}
       </head>
       <body suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>

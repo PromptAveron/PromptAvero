@@ -4,8 +4,6 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ExploreClient } from '@/components/explore/explore-client'
 import { siteConfig } from '@/data/site-config'
 import { getPublicContent, getPublicTags, toPublicSummary } from '@/lib/public-content'
-import { getPublicSiteSettings } from '@/lib/public-settings'
-import { AdSlot } from '@/components/public-integrations'
 import { buildMetadata } from '@/lib/seo'
 
 export const metadata: Metadata = buildMetadata({
@@ -16,7 +14,7 @@ export const metadata: Metadata = buildMetadata({
 })
 
 export default async function ExplorePage() {
-  const [content, settings] = await Promise.all([getPublicContent(), getPublicSiteSettings()])
+  const content = await getPublicContent()
   const summaries = content.prompts.map((prompt) => toPublicSummary(prompt, content.categories))
   const categoryOptions = content.categories
     .filter((category) => summaries.some((summary) => summary.categorySlug === category.slug))
@@ -44,7 +42,6 @@ export default async function ExplorePage() {
           categories={categoryOptions}
           tags={tagOptions}
           pageSize={siteConfig.pageSize}
-          adSlot={<AdSlot settings={settings} kind="listing" />}
         />
       </Suspense>
     </div>

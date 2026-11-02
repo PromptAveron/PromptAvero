@@ -11,13 +11,6 @@ export interface PublicSiteSettings {
   google_analytics_id?: string
   google_search_console_verification?: string
   bing_verification_code?: string
-  adsense_enabled?: boolean
-  adsense_publisher_id?: string
-  listing_ad_slot_id?: string
-  prompt_ad_slot_id?: string
-  ad_code_listing?: string
-  ad_code_prompt_top?: string
-  ad_code_prompt_bottom?: string
   ad_code_head?: string
 }
 

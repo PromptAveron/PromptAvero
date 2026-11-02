@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
 import { Search, SearchX, Star, X } from 'lucide-react'
 import { Pagination } from '@/components/pagination'
 import { PromptGrid } from '@/components/prompt-card'
@@ -34,13 +33,11 @@ export function ExploreClient({
   categories,
   tags,
   pageSize,
-  adSlot,
 }: {
   summaries: PromptSummary[]
   categories: Option[]
   tags: Option[]
   pageSize: number
-  adSlot: ReactNode
 }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -207,8 +204,6 @@ export function ExploreClient({
           </div>
         </div>
       </form>
-
-      {adSlot}
 
       <div className="mt-6 flex flex-wrap items-center gap-2" aria-live="polite">
         <p className="mr-1 text-sm text-muted-foreground">

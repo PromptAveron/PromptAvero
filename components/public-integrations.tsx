@@ -1,15 +1,36 @@
 'use client'
 
 import Script from 'next/script'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { getPromptPageAdCodes } from '@/lib/ad-code'
+import type { ReactNode } from 'react'
+import { getHeadAdCode, hasConfiguredMonetagScript } from '@/lib/ad-code'
 import type { PublicSiteSettings } from '@/lib/public-settings'
 
-declare global {
-  interface Window {
-    adsbygoogle?: unknown[]
-    gtag?: (...args: unknown[]) => void
+const MONETAG_SCRIPT_URL = 'https://nap5k.com/tag.min.js'
+const MONETAG_SCRIPT_CODE = `(function(s){s.dataset.zone='12165665',s.src='${MONETAG_SCRIPT_URL}'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`
+
+function HeadAdScript({ code, id }: { code: string; id: string }) {
+  const scriptMatch = code.match(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/i)
+  const scriptBody = scriptMatch?.[2] ?? code
+  const attributes = scriptMatch?.[1]
+  const scriptSrc = attributes?.match(/\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i)
+  const scriptProps = scriptSrc
+    ? Object.fromEntries(
+        Array.from((attributes ?? '').matchAll(/([^\s=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g))
+          .filter(([ , name ]) => name.toLowerCase() !== 'src')
+          .map(([ , name, doubleQuoted, singleQuoted, unquoted ]) => [
+            name.toLowerCase(),
+            doubleQuoted ?? singleQuoted ?? unquoted ?? true,
+          ]),
+      )
+    : null
+
+  if (scriptSrc && scriptProps) {
+    return <Script id={id} {...scriptProps} src={scriptSrc[1] ?? scriptSrc[2] ?? scriptSrc[3]} strategy="afterInteractive" />
   }
+
+  return scriptBody.trim()
+    ? <Script id={id} strategy="afterInteractive">{scriptBody}</Script>
+    : null
 }
 
 export function PublicIntegrations({
@@ -19,16 +40,18 @@ export function PublicIntegrations({
   settings: PublicSiteSettings
   children: ReactNode
 }) {
-  const publisherId = settings.adsense_publisher_id
+  const headAdCode = getHeadAdCode(settings.ad_code_head)
   const analyticsId = settings.google_analytics_id
   const validAnalyticsId = analyticsId && /^G-[A-Z0-9]+$/i.test(analyticsId) ? analyticsId : undefined
-  const validPublisherId = publisherId && /^ca-pub-\d{10,20}$/.test(publisherId) ? publisherId : undefined
-  const adsEnabled = settings.adsense_enabled === true && Boolean(validPublisherId)
   const analyticsEnabled = Boolean(validAnalyticsId)
 
   return (
     <>
       {children}
+      {headAdCode ? <HeadAdScript code={headAdCode} id="promptavero-configured-head-ad" /> : null}
+      {!hasConfiguredMonetagScript(headAdCode) ? (
+        <HeadAdScript code={MONETAG_SCRIPT_CODE} id="promptavero-monetag-zone" />
+      ) : null}
       {analyticsEnabled ? (
         <>
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(validAnalyticsId!)}`} strategy="afterInteractive" />
@@ -37,116 +60,6 @@ export function PublicIntegrations({
           </Script>
         </>
       ) : null}
-      {adsEnabled ? (
-        <Script
-          id="promptavero-adsense-loader"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(validPublisherId!)}`}
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-          onReady={() => {
-            window.dispatchEvent(new Event('promptavero:ads-ready'))
-          }}
-        />
-      ) : null}
     </>
-  )
-}
-
-export function AdSlot({
-  settings,
-  kind,
-}: {
-  settings: PublicSiteSettings
-  kind: 'listing' | 'prompt_top' | 'prompt_bottom'
-}) {
-  const promptPageAds = getPromptPageAdCodes(settings)
-  const configuredCode = kind === 'listing'
-    ? settings.ad_code_listing
-    : kind === 'prompt_top' ? promptPageAds.belowPrompt : promptPageAds.belowImage
-  const customCode = configuredCode?.trim() ?? ''
-  const publisher = settings.adsense_publisher_id
-  const slot = kind === 'listing' ? settings.listing_ad_slot_id : settings.prompt_ad_slot_id
-  const validPublisher = publisher && /^ca-pub-\d{10,20}$/.test(publisher) ? publisher : undefined
-  const validSlot = slot && /^\d{5,20}$/.test(slot) && kind !== 'prompt_top' ? slot : undefined
-  const [ready, setReady] = useState(false)
-  const [initialized, setInitialized] = useState(false)
-  const [frameHeight, setFrameHeight] = useState(0)
-  const [frameBackground, setFrameBackground] = useState('transparent')
-  const frameRef = useRef<HTMLIFrameElement>(null)
-
-  useEffect(() => {
-    const updateBackground = () => {
-      setFrameBackground(getComputedStyle(document.documentElement).getPropertyValue('--background').trim() || 'transparent')
-    }
-    const markReady = () => setReady(true)
-    const resize = (event: MessageEvent) => {
-      if (event.source !== frameRef.current?.contentWindow || event.data?.type !== 'promptavero-ad-height') return
-      const height = Number(event.data.height)
-      if (Number.isFinite(height)) setFrameHeight(Math.max(0, Math.min(1000, height)))
-    }
-    updateBackground()
-    const themeObserver = new MutationObserver(updateBackground)
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    window.addEventListener('promptavero:ads-ready', markReady)
-    window.addEventListener('message', resize)
-    if (window.adsbygoogle) setReady(true)
-    return () => {
-      themeObserver.disconnect()
-      window.removeEventListener('promptavero:ads-ready', markReady)
-      window.removeEventListener('message', resize)
-    }
-  }, [])
-
-  useEffect(() => {
-    setFrameHeight(0)
-  }, [customCode])
-
-  useEffect(() => {
-    if (customCode || !ready || !validPublisher || !validSlot || settings.adsense_enabled !== true || initialized) return
-    try {
-      window.adsbygoogle = window.adsbygoogle ?? []
-      window.adsbygoogle.push({})
-      setInitialized(true)
-    } catch (error) {
-      console.error('Could not initialize the advertising slot.', error)
-    }
-  }, [customCode, initialized, ready, settings.adsense_enabled, validPublisher, validSlot])
-
-  if (settings.adsense_enabled !== true) return null
-  if (!customCode && (!validPublisher || !validSlot)) return null
-
-  return (
-    <section
-      className={customCode ? (frameHeight > 0 ? 'my-2 w-full text-center' : 'm-0 w-full text-center') : 'my-2 w-full text-center'}
-      aria-label="Advertisement"
-    >
-      {customCode ? (
-        <>
-          {frameHeight > 0 ? <h2 className="mb-1 text-xs font-medium text-muted-foreground">Advertisment</h2> : null}
-          <iframe
-            ref={frameRef}
-            title="Advertisement"
-            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-            referrerPolicy="strict-origin-when-cross-origin"
-            srcDoc={`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;padding:0;width:100%;height:auto;min-height:0;overflow:hidden;background:${frameBackground}}body{display:flex;align-items:flex-start;justify-content:center}iframe,img,video{max-width:100%}</style></head><body>${customCode}<script>(()=>{const measure=()=>{const height=Math.max(0,...Array.from(document.body.querySelectorAll('*')).filter(element=>element.tagName!=='SCRIPT').map(element=>Math.ceil(element.getBoundingClientRect().bottom+window.scrollY)));parent.postMessage({type:'promptavero-ad-height',height},'*')};const resize=new ResizeObserver(measure);const observe=()=>document.body.querySelectorAll('*').forEach(element=>resize.observe(element));observe();new MutationObserver(()=>{observe();measure()}).observe(document.body,{childList:true,subtree:true,attributes:true});measure()})()</script></body></html>`}
-            style={{ height: frameHeight, width: '100%', maxWidth: '100%', border: 0, overflow: 'hidden', background: frameBackground }}
-            className="block"
-          />
-        </>
-      ) : (
-        <>
-          <h2 className="mb-1 text-xs font-medium text-muted-foreground">Advertisment</h2>
-          <ins
-            className="adsbygoogle mx-auto block overflow-hidden text-center"
-            style={{ display: 'block' }}
-            data-ad-client={validPublisher}
-            data-ad-slot={validSlot}
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-            aria-label="Advertisement"
-          />
-        </>
-      )}
-    </section>
   )
 }

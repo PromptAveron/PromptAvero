@@ -256,9 +256,7 @@ export async function saveSettingsAction(formData: FormData) {
     'social_youtube', 'social_pinterest', 'social_facebook', 'default_seo_title',
     'default_meta_description', 'default_og_image', 'indexing_enabled', 'sitemap_enabled',
     'max_images', 'google_analytics_id', 'google_search_console_verification',
-    'bing_verification_code', 'adsense_publisher_id', 'listing_ad_slot_id',
-    'prompt_ad_slot_id', 'adsense_enabled', 'ad_code_listing',
-    'ad_code_prompt_top', 'ad_code_prompt_bottom', 'ad_code_head',
+    'bing_verification_code', 'ad_code_head',
   ]
   const settings: Record<string, string | boolean | number> = {}
   for (const field of fields) {
@@ -270,26 +268,13 @@ export async function saveSettingsAction(formData: FormData) {
     settings.sitemap_enabled = formData.get('sitemap_enabled') === 'on'
   }
   if (key === 'site') {
-    settings.adsense_enabled = formData.get('adsense_enabled') === 'on'
-    for (const codeField of ['ad_code_listing', 'ad_code_prompt_top', 'ad_code_prompt_bottom', 'ad_code_head']) {
-      const code = settings[codeField]
-      if (typeof code === 'string' && code.length > 20000) {
-        throw new Error('Each ad code snippet must be 20,000 characters or fewer.')
-      }
+    const headAdCode = settings.ad_code_head
+    if (typeof headAdCode === 'string' && headAdCode.length > 20000) {
+      throw new Error('The head ad code must be 20,000 characters or fewer.')
     }
     const analyticsId = settings.google_analytics_id
     if (typeof analyticsId === 'string' && analyticsId && !/^G-[A-Z0-9]+$/i.test(analyticsId)) {
       throw new Error('Google Analytics ID should look like G-XXXXXXXXXX.')
-    }
-    const publisherId = settings.adsense_publisher_id
-    if (typeof publisherId === 'string' && publisherId && !/^ca-pub-\d{10,20}$/.test(publisherId)) {
-      throw new Error('AdSense publisher ID should look like ca-pub- followed by your publisher number.')
-    }
-    for (const slotField of ['listing_ad_slot_id', 'prompt_ad_slot_id']) {
-      const slotId = settings[slotField]
-      if (typeof slotId === 'string' && slotId && !/^\d{5,20}$/.test(slotId)) {
-        throw new Error('Ad slot IDs should contain only digits.')
-      }
     }
     for (const verificationField of ['google_search_console_verification', 'bing_verification_code']) {
       const verification = settings[verificationField]
@@ -330,34 +315,18 @@ export async function saveSettingsAction(formData: FormData) {
 export async function saveAdvertisingSettingsAction(formData: FormData) {
   const { supabase, user } = await authorizeAdminAction()
   const settings: Record<string, string | boolean> = {
-    adsense_enabled: formData.get('adsense_enabled') === 'on',
+    adsense_enabled: false,
+    adsense_publisher_id: '',
+    listing_ad_slot_id: '',
+    prompt_ad_slot_id: '',
+    ad_code_listing: '',
+    ad_code_prompt_top: '',
+    ad_code_prompt_bottom: '',
+    ad_code_head: String(formData.get('ad_code_head') ?? '').trim(),
   }
-  for (const field of [
-    'adsense_publisher_id',
-    'listing_ad_slot_id',
-    'prompt_ad_slot_id',
-    'ad_code_listing',
-    'ad_code_prompt_top',
-    'ad_code_prompt_bottom',
-    'ad_code_head',
-  ]) {
-    settings[field] = String(formData.get(field) ?? '').trim()
-  }
-  for (const codeField of ['ad_code_listing', 'ad_code_prompt_top', 'ad_code_prompt_bottom', 'ad_code_head']) {
-    const code = settings[codeField]
-    if (typeof code === 'string' && code.length > 20000) {
-      throw new Error('Each ad code snippet must be 20,000 characters or fewer.')
-    }
-  }
-  const publisherId = settings.adsense_publisher_id
-  if (typeof publisherId === 'string' && publisherId && !/^ca-pub-\d{10,20}$/.test(publisherId)) {
-    throw new Error('AdSense publisher ID should look like ca-pub- followed by your publisher number.')
-  }
-  for (const slotField of ['listing_ad_slot_id', 'prompt_ad_slot_id']) {
-    const slotId = settings[slotField]
-    if (typeof slotId === 'string' && slotId && !/^\d{5,20}$/.test(slotId)) {
-      throw new Error('Ad slot IDs should contain only digits.')
-    }
+  const headAdCode = settings.ad_code_head
+  if (typeof headAdCode === 'string' && headAdCode.length > 20000) {
+    throw new Error('The head ad code must be 20,000 characters or fewer.')
   }
 
   const { data: existing, error: loadError } = await supabase

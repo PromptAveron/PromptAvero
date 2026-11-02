@@ -91,8 +91,8 @@ export default async function PromptPage({ params }: { params: Params }) {
         ]}
       />
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
-        <div className="lg:sticky lg:top-24 lg:self-start">
+      <div className="mt-6 grid gap-8 min-[56rem]:grid-cols-2 xl:gap-12">
+        <div className="min-[56rem]:sticky min-[56rem]:top-24 min-[56rem]:self-start">
           <PromptGallery slug={prompt.slug} title={prompt.title} images={prompt.images} />
         </div>
 
@@ -117,7 +117,7 @@ export default async function PromptPage({ params }: { params: Params }) {
               engagementEnabled={prompt.engagementEnabled ?? false}
             />
           </div>
-          <div className="mt-5 flex flex-nowrap items-start gap-2 sm:gap-3">
+          <div className="mt-5 flex flex-wrap items-start gap-2 sm:gap-3">
             <PromptLikeButton
               promptId={prompt.id}
               slug={prompt.slug}

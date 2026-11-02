@@ -11,6 +11,11 @@ import { cn } from '@/lib/utils'
 
 type Status = 'idle' | 'copied' | 'failed'
 
+const compactCountFormatter = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+})
+
 export function PromptTextPanel({
   promptId,
   promptSlug,
@@ -107,7 +112,9 @@ export function PromptTextPanel({
           Full prompt
         </h2>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs text-muted-foreground">Copied {copyCount.toLocaleString()} Times</span>
+          <span className="text-xs font-bold tabular-nums text-muted-foreground">
+            {compactCountFormatter.format(copyCount)} copies
+          </span>
           <button
             type="button"
             onClick={onCopy}

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { duplicatePromptAction, updatePromptStatusAction } from '@/app/admin/actions'
 import { ConfirmSubmit } from '@/components/admin/confirm-submit'
 import { requireAdmin } from '@/lib/supabase/admin'
+import { formatDate } from '@/lib/format'
 
 const pageSize = 20
 
@@ -74,7 +75,7 @@ export default async function AdminPromptsPage({
                 <td className="px-4 py-3.5 text-muted-foreground">{categoryMap.get(prompt.category_id) ?? '—'}</td>
                 <td className="px-4 py-3.5"><span className="rounded-full bg-muted px-2 py-1 capitalize">{prompt.status}</span></td>
                 <td className="px-4 py-3.5">{prompt.is_featured ? 'Yes' : '—'}</td>
-                <td className="whitespace-nowrap px-4 py-3.5 text-muted-foreground">{new Date(prompt.updated_at).toLocaleDateString()}</td>
+                <td className="whitespace-nowrap px-4 py-3.5 text-muted-foreground">{formatDate(prompt.updated_at)}</td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-3">
                     <Link href={`/admin/prompts/${prompt.id}/edit/`} className="font-medium underline underline-offset-2">Edit</Link>

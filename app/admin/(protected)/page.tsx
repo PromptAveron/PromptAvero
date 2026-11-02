@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, FileText, Folder, Globe2, PencilLine } from 'lucide-react'
 import { requireAdmin } from '@/lib/supabase/admin'
+import { formatDate } from '@/lib/format'
 
 export default async function AdminDashboard() {
   const { supabase } = await requireAdmin()
@@ -57,7 +58,7 @@ export default async function AdminDashboard() {
                     <td className="max-w-[280px] truncate px-5 py-3.5 font-medium">{prompt.title}</td>
                     <td className="px-4 py-3.5 text-muted-foreground">{categoryNames.get(prompt.category_id) ?? '—'}</td>
                     <td className="px-4 py-3.5"><span className="rounded-full bg-muted px-2 py-1 capitalize">{prompt.status}</span></td>
-                    <td className="whitespace-nowrap px-4 py-3.5 text-muted-foreground">{new Date(prompt.updated_at).toLocaleDateString()}</td>
+                    <td className="whitespace-nowrap px-4 py-3.5 text-muted-foreground">{formatDate(prompt.updated_at)}</td>
                     <td className="px-5 py-3.5 text-right"><Link href={`/admin/prompts/${prompt.id}/edit/`} aria-label={`Edit ${prompt.title}`} className="text-muted-foreground hover:text-black"><PencilLine size={15} /></Link></td>
                   </tr>
                 ))}

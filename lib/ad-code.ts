@@ -2,18 +2,22 @@ export const DEFAULT_HEAD_AD_CODE = `<script>(function(s){s.dataset.zone='121656
 
 const PREVIOUS_HEAD_AD_CODE = `<script src="https://5gvci.com/act/files/tag.min.js?z=12165667" data-cfasync="false" async></script>`
 const PREVIOUS_HEAD_AD_URL = 'https://5gvci.com/act/files/tag.min.js?z=12165667'
-const PREVIOUS_MONETAG_URL = 'https://n6wxm.com/vignette.min.js'
+const MONETAG_VIGNETTE_URL = 'https://n6wxm.com/vignette.min.js'
 const CURRENT_MONETAG_URL = 'https://nap5k.com/tag.min.js'
 
 export function getHeadAdCode(configuredCode?: string | null) {
   if (configuredCode == null) return DEFAULT_HEAD_AD_CODE
   if (!configuredCode.trim()) return ''
-  if (configuredCode.trim() === PREVIOUS_HEAD_AD_CODE || configuredCode.includes(PREVIOUS_MONETAG_URL)) {
+  if (configuredCode.trim() === PREVIOUS_HEAD_AD_CODE) {
     return DEFAULT_HEAD_AD_CODE
   }
   const withoutPreviousScript = configuredCode.replace(
     /<script\b[^>]*>[\s\S]*?<\/script\s*>/gi,
-    (script) => script.includes(PREVIOUS_HEAD_AD_URL) ? '' : script,
+    (script) => {
+      if (script.includes(PREVIOUS_HEAD_AD_URL)) return ''
+      if (script.includes(MONETAG_VIGNETTE_URL)) return ''
+      return script
+    },
   ).trim()
   return withoutPreviousScript || DEFAULT_HEAD_AD_CODE
 }

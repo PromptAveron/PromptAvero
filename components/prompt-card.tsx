@@ -66,7 +66,7 @@ export function PromptCard({
           ) : null}
         </div>
         <Link href={promptPath(prompt.slug)} className="block rounded-sm">
-          <h3 className="text-sm font-semibold leading-snug hover:text-brand-text">{prompt.title}</h3>
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug hover:text-brand-text">{prompt.title}</h3>
           <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{prompt.shortDescription}</p>
         </Link>
         <div className="relative z-20 mt-2 flex items-center gap-2">

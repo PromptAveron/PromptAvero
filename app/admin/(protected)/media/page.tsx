@@ -1,6 +1,7 @@
 import { deletePromptImageAction, updateImageMetadataAction } from '@/app/admin/actions'
 import { ConfirmSubmit } from '@/components/admin/confirm-submit'
 import { requireAdmin } from '@/lib/supabase/admin'
+import { formatDate } from '@/lib/format'
 
 export default async function AdminMediaPage() {
   const { supabase } = await requireAdmin()
@@ -26,7 +27,7 @@ export default async function AdminMediaPage() {
                 </div>
                 <div className="p-4">
                   <p className="truncate text-xs font-medium">{prompt?.title ?? 'Unassigned prompt'}{image.is_primary ? ' · Primary' : ''}</p>
-                  <p className="mt-1 text-[10px] text-muted-foreground">{image.mime_type} · {(image.file_size / 1024).toFixed(0)} KB · {new Date(image.created_at).toLocaleDateString()}</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">{image.mime_type} · {(image.file_size / 1024).toFixed(0)} KB · {formatDate(image.created_at)}</p>
                   {prompt ? <a href={`/prompts/${prompt.slug}/`} target="_blank" rel="noreferrer" className="mt-2 inline-block text-[10px] underline underline-offset-2">View public prompt</a> : null}
                   <div className="mt-3 space-y-2">
                   <form action={updateImageMetadataAction} className="space-y-2">

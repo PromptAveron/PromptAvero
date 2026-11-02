@@ -1,12 +1,16 @@
 'use client'
 
 import Script from 'next/script'
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { getHeadAdCode, hasConfiguredMonetagScript } from '@/lib/ad-code'
 import type { PublicSiteSettings } from '@/lib/public-settings'
 
 const MONETAG_SCRIPT_URL = 'https://nap5k.com/tag.min.js'
 const MONETAG_SCRIPT_CODE = `(function(s){s.dataset.zone='12165665',s.src='${MONETAG_SCRIPT_URL}'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`
+const MONETAG_VIGNETTE_SCRIPT_URL = 'https://n6wxm.com/vignette.min.js'
+const MONETAG_VIGNETTE_SCRIPT_CODE = `(function(s){s.dataset.zone='12158647',s.src='${MONETAG_VIGNETTE_SCRIPT_URL}'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`
+const MONETAG_VIGNETTE_SCRIPT_ID = 'promptavero-monetag-vignette-zone'
 
 function HeadAdScript({ code, id }: { code: string; id: string }) {
   const scriptMatch = code.match(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/i)
@@ -44,6 +48,22 @@ export function PublicIntegrations({
   const analyticsId = settings.google_analytics_id
   const validAnalyticsId = analyticsId && /^G-[A-Z0-9]+$/i.test(analyticsId) ? analyticsId : undefined
   const analyticsEnabled = Boolean(validAnalyticsId)
+
+  useEffect(() => {
+    if (document.getElementById(MONETAG_VIGNETTE_SCRIPT_ID)) return
+
+    const script = document.createElement('script')
+    script.id = MONETAG_VIGNETTE_SCRIPT_ID
+    script.textContent = MONETAG_VIGNETTE_SCRIPT_CODE
+    document.head.appendChild(script)
+
+    return () => {
+      script.remove()
+      document.querySelector(
+        `script[src="${MONETAG_VIGNETTE_SCRIPT_URL}"][data-zone="12158647"]`,
+      )?.remove()
+    }
+  }, [])
 
   return (
     <>

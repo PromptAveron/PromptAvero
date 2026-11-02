@@ -170,6 +170,24 @@
   }
 }
 
+.prompt-gallery-frame {
+  aspect-ratio: var(--prompt-gallery-aspect-ratio);
+}
+
+@media (min-width: 48rem) and (max-width: 79.999rem) {
+  .prompt-gallery-frame {
+    width: 100%;
+    aspect-ratio: 0.95;
+    max-height: 68vh;
+  }
+}
+
+@media (min-width: 80rem) {
+  .prompt-gallery-frame {
+    aspect-ratio: 0.92;
+  }
+}
+
 @keyframes like-pop {
   0% { transform: scale(1); }
   35% { transform: scale(1.45) rotate(-8deg); }

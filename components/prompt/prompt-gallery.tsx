@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { ChevronLeft, ChevronRight, Download, Eye } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
@@ -57,7 +57,10 @@ export function PromptGallery({
 
   return (
     <div className="rounded-2xl border border-border/80 bg-card p-2.5 shadow-lg shadow-foreground/10 sm:p-3">
-      <div className="relative isolate aspect-square max-h-[78vh] overflow-hidden rounded-xl bg-muted">
+      <div
+        className="prompt-gallery-frame relative isolate max-h-[78vh] overflow-hidden rounded-xl bg-muted"
+        style={{ '--prompt-gallery-aspect-ratio': `${current.width} / ${current.height}` } as CSSProperties}
+      >
         <Image
           src={current.src}
           alt=""

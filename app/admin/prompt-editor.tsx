@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { ImageManager } from '@/components/admin/image-manager'
+import { formatDate } from '@/lib/format'
 import type { Database } from '@/types/database'
 
 type PromptRecord = Database['public']['Tables']['prompts']['Row']
@@ -174,7 +175,7 @@ export function PromptEditor({ prompt, categories, saveAction, saved = false }: 
           <div className="sm:col-span-2"><TextField label="Expected result" name="expected_result" rows={2} defaultValue={prompt?.expected_result} /></div>
         </div>
       </section>
-      {prompt ? <p className="mt-4 text-[11px] text-muted-foreground">Created {new Date(prompt.created_at).toLocaleDateString()} · Last updated {new Date(prompt.updated_at).toLocaleDateString()}</p> : null}
+      {prompt ? <p className="mt-4 text-[11px] text-muted-foreground">Created {formatDate(prompt.created_at)} · Last updated {formatDate(prompt.updated_at)}</p> : null}
       <section className="mt-4 rounded-lg border border-border bg-card p-5 sm:p-6">
         <h2 className="text-sm font-semibold">Prompt metadata</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

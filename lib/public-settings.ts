@@ -11,7 +11,6 @@ export interface PublicSiteSettings {
   google_analytics_id?: string
   google_search_console_verification?: string
   bing_verification_code?: string
-  ad_code_head?: string
 }
 
 const getCachedPublicSiteSettings = unstable_cache(
@@ -20,9 +19,24 @@ const getCachedPublicSiteSettings = unstable_cache(
     const { data, error } = await supabase.rpc('get_public_site_settings')
     if (error) throw new Error(`Could not load public site settings: ${error.message}`)
     if (!data || typeof data !== 'object' || Array.isArray(data)) return {}
-    return data as PublicSiteSettings
+
+    const values = data as Record<string, unknown>
+    const settings: PublicSiteSettings = {}
+    for (const key of [
+      'site_name',
+      'tagline',
+      'logo_url',
+      'favicon_url',
+      'google_analytics_id',
+      'google_search_console_verification',
+      'bing_verification_code',
+    ] as const) {
+      const setting = values[key]
+      if (typeof setting === 'string') settings[key] = setting
+    }
+    return settings
   },
-  ['public-site-settings-v1'],
+  ['public-site-settings-v2'],
   { tags: ['public-site-settings'], revalidate: 300 },
 )
 

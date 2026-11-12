@@ -256,7 +256,7 @@ export async function saveSettingsAction(formData: FormData) {
     'social_youtube', 'social_pinterest', 'social_facebook', 'default_seo_title',
     'default_meta_description', 'default_og_image', 'indexing_enabled', 'sitemap_enabled',
     'max_images', 'google_analytics_id', 'google_search_console_verification',
-    'bing_verification_code', 'ad_code_head',
+    'bing_verification_code',
   ]
   const settings: Record<string, string | boolean | number> = {}
   for (const field of fields) {
@@ -268,10 +268,6 @@ export async function saveSettingsAction(formData: FormData) {
     settings.sitemap_enabled = formData.get('sitemap_enabled') === 'on'
   }
   if (key === 'site') {
-    const headAdCode = settings.ad_code_head
-    if (typeof headAdCode === 'string' && headAdCode.length > 20000) {
-      throw new Error('The head ad code must be 20,000 characters or fewer.')
-    }
     const analyticsId = settings.google_analytics_id
     if (typeof analyticsId === 'string' && analyticsId && !/^G-[A-Z0-9]+$/i.test(analyticsId)) {
       throw new Error('Google Analytics ID should look like G-XXXXXXXXXX.')
@@ -310,43 +306,6 @@ export async function saveSettingsAction(formData: FormData) {
   revalidatePublicSettings()
   revalidatePath('/')
   redirect(`/admin/${key === 'seo' ? 'seo' : 'settings'}/?saved=1`)
-}
-
-export async function saveAdvertisingSettingsAction(formData: FormData) {
-  const { supabase, user } = await authorizeAdminAction()
-  const settings: Record<string, string | boolean> = {
-    adsense_enabled: false,
-    adsense_publisher_id: '',
-    listing_ad_slot_id: '',
-    prompt_ad_slot_id: '',
-    ad_code_listing: '',
-    ad_code_prompt_top: '',
-    ad_code_prompt_bottom: '',
-    ad_code_head: String(formData.get('ad_code_head') ?? '').trim(),
-  }
-  const headAdCode = settings.ad_code_head
-  if (typeof headAdCode === 'string' && headAdCode.length > 20000) {
-    throw new Error('The head ad code must be 20,000 characters or fewer.')
-  }
-
-  const { data: existing, error: loadError } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'site')
-    .maybeSingle()
-  if (loadError) throw new Error(`Could not load existing settings: ${loadError.message}`)
-  const oldSettings = existing?.value && typeof existing.value === 'object' && !Array.isArray(existing.value)
-    ? existing.value as Record<string, unknown>
-    : {}
-  const { error } = await supabase.from('site_settings').upsert(
-    { key: 'site', value: { ...oldSettings, ...settings }, updated_by: user.id, updated_at: new Date().toISOString() },
-    { onConflict: 'key' },
-  )
-  if (error) throw new Error(`Could not save advertising settings: ${error.message}`)
-  revalidatePublicSettings()
-  revalidatePath('/admin/settings')
-  revalidatePath('/', 'layout')
-  redirect('/admin/settings/?ads_saved=1')
 }
 
 export async function saveBrandAssetAction(asset: 'logo' | 'favicon', imageUrl: string) {

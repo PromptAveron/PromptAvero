@@ -35,10 +35,9 @@ export default function PrivacyPolicyPage() {
         browser type, and requested pages in server logs for security and reliability.
       </p>
 
-      <h2>Analytics, advertising, and third parties</h2>
+      <h2>Analytics and third parties</h2>
       <p>
-        If analytics or advertising services are added in the future, this policy should be updated to name
-        them and explain what they collect.
+        If analytics services are enabled, this policy should be updated to name them and explain what they collect.
       </p>
 
       <h2>Changes to this policy</h2>

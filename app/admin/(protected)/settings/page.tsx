@@ -1,6 +1,5 @@
-import { saveAdvertisingSettingsAction, saveSettingsAction } from '@/app/admin/actions'
+import { saveSettingsAction } from '@/app/admin/actions'
 import { BrandAssetUpload } from '@/components/admin/brand-asset-upload'
-import { getHeadAdCode } from '@/lib/ad-code'
 import { requireAdmin } from '@/lib/supabase/admin'
 
 function getSettings(value: unknown): Record<string, string | boolean | number> {
@@ -8,8 +7,8 @@ function getSettings(value: unknown): Record<string, string | boolean | number> 
   return value as Record<string, string | boolean | number>
 }
 
-export default async function AdminSettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string; ads_saved?: string }> }) {
-  const { saved, ads_saved: adsSaved } = await searchParams
+export default async function AdminSettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
+  const { saved } = await searchParams
   const { supabase } = await requireAdmin()
   const { data, error } = await supabase.from('site_settings').select('value').eq('key', 'site').maybeSingle()
   if (error) throw new Error(`Could not load site settings: ${error.message}`)
@@ -19,7 +18,6 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
     <div className="mx-auto max-w-4xl pt-10 md:pt-0">
       <header><p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Configuration</p><h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">Site settings</h1><p className="mt-2 text-sm text-muted-foreground">Manage general site details and the public contact and social information.</p></header>
       {saved ? <p role="status" className="mt-4 rounded-md bg-green-50 px-3 py-2 text-xs text-green-800">Settings saved.</p> : null}
-      {adsSaved ? <p role="status" className="mt-4 rounded-md bg-green-50 px-3 py-2 text-xs text-green-800">Advertising settings saved.</p> : null}
       <form action={saveSettingsAction} className="mt-6 space-y-4">
         <input type="hidden" name="key" value="site" />
         <section className="rounded-lg border border-border bg-card p-5 sm:p-6">
@@ -42,16 +40,6 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
             <label className="text-xs font-medium">Google Analytics measurement ID<input name="google_analytics_id" placeholder="G-XXXXXXXXXX" defaultValue={String(settings.google_analytics_id ?? '')} className={inputClass} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">Loaded automatically on public pages.</span></label>
             <label className="text-xs font-medium">Google Search Console verification code<input name="google_search_console_verification" defaultValue={String(settings.google_search_console_verification ?? '')} className={inputClass} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">Enter the content value of the google-site-verification meta tag.</span></label>
             <label className="text-xs font-medium sm:col-span-2">Bing Webmaster verification code<input name="bing_verification_code" defaultValue={String(settings.bing_verification_code ?? '')} className={inputClass} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">Enter the content value of the msvalidate.01 meta tag.</span></label>
-          </div>
-        </section>
-        <section className="rounded-lg border border-border bg-card p-5 sm:p-6">
-          <h2 className="text-sm font-semibold">Advertising</h2>
-          <p className="mt-1 text-xs text-muted-foreground">The configured Monetag zone loads in the public page head. Additional head scripts run on public pages only; only paste code from ad networks you trust.</p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <label className="text-xs font-medium sm:col-span-2">Additional global head ad code<textarea name="ad_code_head" rows={6} defaultValue={getHeadAdCode(typeof settings.ad_code_head === 'string' ? settings.ad_code_head : undefined)} placeholder="Paste the ad network code, including its script tags" className={`${inputClass} h-auto resize-y py-2 font-mono text-xs`} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">Added to the document head on public pages. Monetag zone 12165665 loads automatically and is not controlled by this field.</span></label>
-            <div className="flex justify-end sm:col-span-2"><button formAction={saveAdvertisingSettingsAction} className="h-9 rounded-md bg-primary px-4 text-xs font-medium text-white">Save advertising settings</button></div>
-            <p className="text-[10px] text-muted-foreground sm:col-span-2">Explore and prompt-detail ad placements have been removed.</p>
-            <p className="text-[10px] text-muted-foreground sm:col-span-2">Review applicable privacy requirements before enabling third-party ads or analytics.</p>
           </div>
         </section>
         <section className="rounded-lg border border-border bg-card p-5 sm:p-6">

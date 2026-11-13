@@ -1,6 +1,6 @@
 # PromptAvero admin setup
 
-The `/admin` area uses Supabase Auth and PostgreSQL row-level security. All image files are stored in ImageKit; Supabase is used for auth and database records only. Admin signup is not exposed by the application.
+The `/admin` area uses Supabase Auth and PostgreSQL row-level security. Prompt and brand images are stored in ImageKit; the 111 AI Image Prompts sample PDF is stored in Supabase Storage. Admin signup is not exposed by the application.
 
 ## Configure Supabase
 
@@ -20,9 +20,10 @@ The `/admin` area uses Supabase Auth and PostgreSQL row-level security. All imag
 14. For a fresh project, run `pnpm seed:content` once to import the bundled public prompt and category content, including its initial images. Set `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ADMIN_USER_ID`, and `IMAGEKIT_PRIVATE_KEY` only in the private environment used by the one-time import process. The importer skips existing slugs and is safe to rerun; it does not overwrite admin-managed records.
 15. Apply [`supabase/migrations/202610310001_admin_login_rate_limit.sql`](./supabase/migrations/202610310001_admin_login_rate_limit.sql) before enabling admin sign-in. Set `ADMIN_LOGIN_RATE_LIMIT_SECRET` to a randomly generated secret (at least 32 characters) in local and deployed runtime environments; do not expose it to the browser or add it as a build variable. Store the same secret in the private database config table by running `insert into public.admin_login_rate_limit_config (id, server_secret) values (true, '<your secret>') on conflict (id) do update set server_secret = excluded.server_secret;` in the Supabase SQL editor. Do not commit the secret or SQL statement containing it.
 16. Apply [`supabase/migrations/202611120001_remove_advertising.sql`](./supabase/migrations/202611120001_remove_advertising.sql) to remove saved ad settings and ad values from the public-safe settings function.
-17. Restart the Next.js process and visit `/admin/`.
+17. Apply [`supabase/migrations/202611130001_product_promotion_settings.sql`](./supabase/migrations/202611130001_product_promotion_settings.sql) to enable the promotion settings and public sample-PDF bucket. Only administrators can upload PDFs; public visitors can read the sample.
+18. Restart the Next.js process and visit `/admin/`.
 
-Supabase remains the application's authentication and database provider; it is not used for image file storage. Admin uploads, seeded images, and migrated legacy images are stored in ImageKit. The application's database client uses the signed-in user's session and the anon key. No service-role key is needed by the dashboard or public website. The database enforces a maximum of five image rows per prompt with a transaction-scoped lock. `proxy.ts` refreshes Supabase auth cookies; every protected page and mutation additionally verifies the current administrator claim.
+Supabase is the application's authentication and database provider and also stores the sample product PDF. Admin image uploads, seeded images, and migrated legacy images are stored in ImageKit. The application's browser database client uses the signed-in user's session and the anon key. No service-role key is needed by the dashboard or public website. The database enforces a maximum of five image rows per prompt with a transaction-scoped lock. `proxy.ts` refreshes Supabase auth cookies; every protected page and mutation additionally verifies the current administrator claim.
 
 ## Included admin capabilities
 
@@ -32,9 +33,9 @@ Supabase remains the application's authentication and database provider; it is n
 - Prompt draft/publish, editing, searching, filtering, ordering, pagination, duplication, trashing, and image upload/metadata/order/primary-image management.
 - Category create/edit/delete with usage checks.
 - Media library with prompt associations and metadata edits.
-- Persisted global SEO and site settings, including branding, analytics, and search verification.
+- Persisted global SEO and site settings, including branding, analytics, search verification, and the 111 AI Image Prompts offer and sample PDF.
 
-When Supabase is configured, public home, category, prompt, explore, and sitemap routes use published database records; without Supabase configuration, the existing bundled JSON content continues to render. Configured analytics and head ad code load automatically on public routes and are not included on admin routes. Global head scripts can access the public page DOM and cookies; only paste code from ad networks you trust. Ensure your privacy disclosures and consent behavior comply with requirements that apply to your site. Prompt-level SEO title, description, canonical URL, and indexing preferences are applied by public prompt pages and the sitemap.
+When Supabase is configured, public home, category, prompt, explore, and sitemap routes use published database records; without Supabase configuration, the existing bundled JSON content continues to render. Configured analytics and Gumroad's official checkout overlay script load only on public routes. Website display pricing is configurable but does not synchronize Gumroad checkout pricing; confirm the actual price and purchase terms on Gumroad.
 
 Public visitors can toggle their like on each prompt using a random identifier stored in local storage. Prompt copies increment a shared database counter at most once per browser per prompt every 30 seconds. Engagement counts are fetched without the public-content cache so refreshes show current global totals.
 
@@ -63,5 +64,6 @@ Do not claim production authentication, database policies, or uploads have been 
 - Upload five supported images to a prompt; a sixth must fail in the UI and at the database policy/trigger layer. Check reordering, primary image, alt text, replacement, and deletion.
 - Verify category deletion is refused while prompts reference it; check SEO fields, settings save/refresh, mobile navigation, and sign-out.
 - Verify public analytics loads only when configured and no advertising scripts load on public or admin routes.
+- Apply the product-promotion migration, then verify `/111-ai-image-prompts/`, its sample PDF preview, price/promotion controls, and timed popup. Upload a PDF as an admin and save its URL; unauthenticated uploads must be denied. Confirm the Gumroad button links to the configured product. A displayed discount does not change the checkout price.
 - After applying the prompt engagement migration, verify likes increment once per browser and successful prompt copies update the displayed count.
 - Apply the copy cooldown migration, then verify repeated copies from one browser within 30 seconds only increment once; counts should match across browsers after reload.

@@ -18,6 +18,7 @@ export const siteConfig = {
   nav: [
     { label: 'Home', href: '/' },
     { label: 'Explore Prompts', href: '/prompts/' },
+    { label: 'Prompt Pack', href: '/111-ai-image-prompts/' },
     { label: 'Latest Prompts', href: '/prompts/?sort=newest' },
   ],
   footerNav: {

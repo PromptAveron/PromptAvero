@@ -2,6 +2,8 @@
 
 import Script from 'next/script'
 import type { ReactNode } from 'react'
+import { ProductPromotionPopup } from '@/components/product-promotion-popup'
+import { normalizeProductPromotionSettings } from '@/lib/product-promotion'
 import type { PublicSiteSettings } from '@/lib/public-settings'
 
 export function PublicIntegrations({
@@ -14,10 +16,19 @@ export function PublicIntegrations({
   const analyticsId = settings.google_analytics_id
   const validAnalyticsId = analyticsId && /^G-[A-Z0-9]+$/i.test(analyticsId) ? analyticsId : undefined
   const analyticsEnabled = Boolean(validAnalyticsId)
+  const productSettings = settings.product_promotion ?? normalizeProductPromotionSettings()
 
   return (
     <>
       {children}
+      {productSettings ? <ProductPromotionPopup settings={productSettings} /> : null}
+      {productSettings?.gumroadUrl ? (
+        <Script
+          id="promptavero-gumroad-overlay"
+          src="https://gumroad.com/js/gumroad.js"
+          strategy="lazyOnload"
+        />
+      ) : null}
       {analyticsEnabled ? (
         <>
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(validAnalyticsId!)}`} strategy="afterInteractive" />

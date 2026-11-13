@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { createSupabasePublicClient, hasSupabaseConfig } from '@/lib/supabase/server'
 import { withFallback } from '@/lib/with-fallback'
+import { normalizeProductPromotionSettings, type ProductPromotionSettings } from '@/lib/product-promotion'
 
 export interface PublicSiteSettings {
   site_name?: string
@@ -11,6 +12,7 @@ export interface PublicSiteSettings {
   google_analytics_id?: string
   google_search_console_verification?: string
   bing_verification_code?: string
+  product_promotion?: ProductPromotionSettings
 }
 
 const getCachedPublicSiteSettings = unstable_cache(
@@ -34,9 +36,10 @@ const getCachedPublicSiteSettings = unstable_cache(
       const setting = values[key]
       if (typeof setting === 'string') settings[key] = setting
     }
+    settings.product_promotion = normalizeProductPromotionSettings(values)
     return settings
   },
-  ['public-site-settings-v2'],
+  ['public-site-settings-v3'],
   { tags: ['public-site-settings'], revalidate: 300 },
 )
 

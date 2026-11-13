@@ -68,6 +68,41 @@ function validateCanonicalUrl(url: string | null) {
   }
 }
 
+function priceToCents(input: string) {
+  if (!/^\d+(?:\.\d{1,2})?$/.test(input)) {
+    throw new Error('Enter a price with no more than two decimal places.')
+  }
+  const [whole, fraction = ''] = input.split('.')
+  const cents = Number(whole) * 100 + Number(fraction.padEnd(2, '0'))
+  if (!Number.isSafeInteger(cents)) throw new Error('Enter a valid product price.')
+  return cents
+}
+
+function validateGumroadUrl(input: string) {
+  try {
+    const url = new URL(input)
+    const host = url.hostname.toLowerCase()
+    if (url.protocol !== 'https:' || url.pathname === '/' || !(host === 'gumroad.com' || host.endsWith('.gumroad.com'))) throw new Error()
+  } catch {
+    throw new Error('Enter a valid HTTPS Gumroad product URL.')
+  }
+}
+
+function validateSamplePdfUrl(input: string) {
+  if (input.startsWith('/') && !input.startsWith('//')) {
+    if (!input.toLowerCase().split(/[?#]/)[0].endsWith('.pdf')) {
+      throw new Error('The sample file URL must point to a PDF.')
+    }
+    return
+  }
+  try {
+    const url = new URL(input)
+    if (url.protocol !== 'https:' || !url.pathname.toLowerCase().endsWith('.pdf')) throw new Error()
+  } catch {
+    throw new Error('Enter a valid HTTPS PDF URL or a local PDF path.')
+  }
+}
+
 export async function savePromptAction(formData: FormData) {
   const { supabase, user } = await authorizeAdminAction()
   const id = value(formData, 'id')
@@ -257,6 +292,8 @@ export async function saveSettingsAction(formData: FormData) {
     'default_meta_description', 'default_og_image', 'indexing_enabled', 'sitemap_enabled',
     'max_images', 'google_analytics_id', 'google_search_console_verification',
     'bing_verification_code',
+    'product_discount_percentage', 'product_gumroad_url', 'product_sample_pdf_url',
+    'product_popup_delay_seconds',
   ]
   const settings: Record<string, string | boolean | number> = {}
   for (const field of fields) {
@@ -278,6 +315,27 @@ export async function saveSettingsAction(formData: FormData) {
         throw new Error('Verification codes may contain letters, numbers, underscores, and hyphens only.')
       }
     }
+    const originalPrice = value(formData, 'product_original_price')
+    const discount = value(formData, 'product_discount_percentage')
+    const popupDelay = value(formData, 'product_popup_delay_seconds')
+    const gumroadUrl = value(formData, 'product_gumroad_url')
+    const samplePdfUrl = value(formData, 'product_sample_pdf_url')
+    if (!/^(?:100|[0-9]{1,2})$/.test(discount)) {
+      throw new Error('Discount percentage must be a whole number from 0 to 100.')
+    }
+    if (!/^(?:0|[1-9]\d{0,2})$/.test(popupDelay) || Number(popupDelay) > 120) {
+      throw new Error('Popup delay must be a whole number from 0 to 120 seconds.')
+    }
+    if (!gumroadUrl || !samplePdfUrl) {
+      throw new Error('A Gumroad product URL and sample PDF are required.')
+    }
+    validateGumroadUrl(gumroadUrl)
+    validateSamplePdfUrl(samplePdfUrl)
+    settings.product_original_price_cents = priceToCents(originalPrice)
+    settings.product_discount_percentage = Number(discount)
+    settings.product_promotion_enabled = formData.get('product_promotion_enabled') === 'on'
+    settings.product_popup_enabled = formData.get('product_popup_enabled') === 'on'
+    settings.product_popup_delay_seconds = Number(popupDelay)
   }
   if (formData.has('max_images')) settings.max_images = Math.min(5, Math.max(1, Number(settings.max_images) || 5))
   const siteUrl = settings.site_url
@@ -305,6 +363,7 @@ export async function saveSettingsAction(formData: FormData) {
   revalidatePath('/admin/seo')
   revalidatePublicSettings()
   revalidatePath('/')
+  revalidatePath('/111-ai-image-prompts/')
   redirect(`/admin/${key === 'seo' ? 'seo' : 'settings'}/?saved=1`)
 }
 

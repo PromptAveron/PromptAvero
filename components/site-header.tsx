@@ -141,6 +141,12 @@ export function SiteHeader({
           >
             Explore Prompts
           </Link>
+          <Link
+            href="/111-ai-image-prompts/"
+            className={linkClass(pathname.startsWith('/111-ai-image-prompts'))}
+          >
+            Prompt Pack
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(linkClass(pathname.startsWith('/category')), 'gap-1 outline-none')}

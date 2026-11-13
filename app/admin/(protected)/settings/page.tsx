@@ -1,5 +1,7 @@
 import { saveSettingsAction } from '@/app/admin/actions'
 import { BrandAssetUpload } from '@/components/admin/brand-asset-upload'
+import { ProductSamplePdfUpload } from '@/components/admin/product-sample-pdf-upload'
+import { normalizeProductPromotionSettings } from '@/lib/product-promotion'
 import { requireAdmin } from '@/lib/supabase/admin'
 
 function getSettings(value: unknown): Record<string, string | boolean | number> {
@@ -13,6 +15,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
   const { data, error } = await supabase.from('site_settings').select('value').eq('key', 'site').maybeSingle()
   if (error) throw new Error(`Could not load site settings: ${error.message}`)
   const settings = getSettings(data?.value)
+  const productSettings = normalizeProductPromotionSettings(settings)
   const inputClass = 'mt-1.5 h-9 w-full rounded-md border border-border bg-card px-3 text-sm font-normal outline-none focus:border-primary'
   return (
     <div className="mx-auto max-w-4xl pt-10 md:pt-0">
@@ -41,6 +44,36 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
             <label className="text-xs font-medium">Google Search Console verification code<input name="google_search_console_verification" defaultValue={String(settings.google_search_console_verification ?? '')} className={inputClass} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">Enter the content value of the google-site-verification meta tag.</span></label>
             <label className="text-xs font-medium sm:col-span-2">Bing Webmaster verification code<input name="bing_verification_code" defaultValue={String(settings.bing_verification_code ?? '')} className={inputClass} /><span className="mt-1 block text-[10px] font-normal text-muted-foreground">Enter the content value of the msvalidate.01 meta tag.</span></label>
           </div>
+        </section>
+        <section className="rounded-lg border border-border bg-card p-5 sm:p-6">
+          <h2 className="text-sm font-semibold">111 AI Image Prompts promotion</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Configure the product page, displayed offer, sample PDF, and timed popup.</p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <label className="text-xs font-medium">Original displayed price (USD)
+              <input name="product_original_price" type="number" min="0" step="0.01" required defaultValue={(productSettings.originalPriceCents / 100).toFixed(2)} className={inputClass} />
+            </label>
+            <label className="text-xs font-medium">Promotion discount (%)
+              <input name="product_discount_percentage" type="number" min="0" max="100" step="1" required defaultValue={productSettings.discountPercentage} className={inputClass} />
+            </label>
+            <label className="text-xs font-medium sm:col-span-2">Gumroad product URL
+              <input name="product_gumroad_url" type="url" required defaultValue={productSettings.gumroadUrl} className={inputClass} />
+            </label>
+            <label className="flex items-center gap-2 text-xs font-medium">
+              <input name="product_promotion_enabled" type="checkbox" defaultChecked={productSettings.promotionEnabled} className="size-4 accent-primary" />
+              Show the promotional discount on the product page
+            </label>
+            <label className="flex items-center gap-2 text-xs font-medium">
+              <input name="product_popup_enabled" type="checkbox" defaultChecked={productSettings.popupEnabled} className="size-4 accent-primary" />
+              Enable the timed promotion popup
+            </label>
+            <label className="text-xs font-medium">Popup delay (seconds)
+              <input name="product_popup_delay_seconds" type="number" min="0" max="120" step="1" required defaultValue={productSettings.popupDelaySeconds} className={inputClass} />
+            </label>
+            <div className="sm:col-span-2">
+              <ProductSamplePdfUpload currentUrl={productSettings.samplePdfUrl} />
+            </div>
+          </div>
+          <p className="mt-4 text-[11px] text-muted-foreground">The displayed discount does not change Gumroad’s checkout price. Update the product price or configure a Gumroad offer separately if needed.</p>
         </section>
         <section className="rounded-lg border border-border bg-card p-5 sm:p-6">
           <h2 className="text-sm font-semibold">Social profiles</h2><p className="mt-1 text-xs text-muted-foreground">Only configured links should be shown publicly.</p>

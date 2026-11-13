@@ -3,7 +3,7 @@ import { siteConfig } from '@/data/site-config'
 import { getPopulatedPublicCategories, getPublicCategoryPrompts, getPublicContent } from '@/lib/public-content'
 import { absoluteUrl, categoryPath, promptPath } from '@/lib/seo'
 
-const staticPages = ['/', '/prompts/', '/category/', '/about/', '/contact/', '/privacy-policy/', '/terms-of-use/']
+const staticPages = ['/', '/prompts/', '/category/', '/111-ai-image-prompts/', '/about/', '/contact/', '/privacy-policy/', '/terms-of-use/']
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const content = await getPublicContent()

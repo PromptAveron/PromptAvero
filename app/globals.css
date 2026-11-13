@@ -241,6 +241,30 @@
   animation-delay: 30ms;
 }
 
+@media (max-width: 39.999rem) {
+  a.gumroad-button {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 22.5rem) {
+  a.gumroad-button {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (min-width: 40rem) and (max-width: 51.999rem) {
+  #sample a.gumroad-button {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    font-size: 13px !important;
+  }
+}
+
 @keyframes like-sparkle {
   0% {
     transform: translate(0, 0) scale(0);

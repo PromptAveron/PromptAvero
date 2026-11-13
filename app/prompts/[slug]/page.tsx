@@ -5,6 +5,7 @@ import { ArrowLeft, BookOpenText, Lightbulb, Target } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { JsonLd } from '@/components/json-ld'
 import { PromptGrid } from '@/components/prompt-card'
+import { ProductPurchaseLink } from '@/components/product-purchase-link'
 import { PromptGallery } from '@/components/prompt/prompt-gallery'
 import { PromptLikeButton } from '@/components/prompt/prompt-like-button'
 import { PromptTextPanel } from '@/components/prompt/prompt-text-panel'
@@ -14,6 +15,12 @@ import { btn } from '@/lib/button-styles'
 import { getPrimaryPublicImage, getPublicContent, getRelatedPublicPrompts, toPublicSummary } from '@/lib/public-content'
 import { tagLabel } from '@/lib/content'
 import { formatDate } from '@/lib/format'
+import {
+  calculateProductPrice,
+  formatProductPrice,
+  normalizeProductPromotionSettings,
+} from '@/lib/product-promotion'
+import { getPublicSiteSettings } from '@/lib/public-settings'
 import { buildMetadata, categoryPath, promptCanonical, promptJsonLd, promptPath } from '@/lib/seo'
 
 export const dynamic = 'force-static'
@@ -59,7 +66,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function PromptPage({ params }: { params: Params }) {
   const { slug } = await params
-  const content = await getPublicContent()
+  const [content, publicSettings] = await Promise.all([getPublicContent(), getPublicSiteSettings()])
+  const productSettings = publicSettings.product_promotion ?? normalizeProductPromotionSettings()
+  const price = calculateProductPrice(productSettings)
   const prompt = content.prompts.find((item) => item.slug === slug)
   if (!prompt) notFound()
   const category = content.categories.find((item) => item.slug === prompt.categorySlug)
@@ -127,6 +136,33 @@ export default async function PromptPage({ params }: { params: Params }) {
               className="h-10 w-[5.75rem] gap-1 px-1.5 text-[11px] sm:h-12 sm:w-40 sm:gap-1.5 sm:px-5 sm:text-sm"
             />
             <ShareActions url={canonical} title={prompt.title} />
+          </div>
+          <div className="mt-4 flex justify-center">
+            <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-center text-card-foreground shadow-sm sm:p-6">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-text">
+                111 AI Image Prompts Pack
+              </p>
+              <div className="mt-2 flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
+                {price.discountPercentage > 0 ? (
+                  <span className="text-base text-muted-foreground line-through">
+                    {formatProductPrice(price.originalPriceCents)}
+                  </span>
+                ) : null}
+                <span className="text-3xl font-semibold tracking-tight text-foreground">
+                  {formatProductPrice(price.currentPriceCents)}
+                </span>
+                {price.discountPercentage > 0 ? (
+                  <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground">
+                    {price.discountPercentage}% off
+                  </span>
+                ) : null}
+              </div>
+              <div className="mt-4 flex justify-center">
+                <ProductPurchaseLink href={productSettings.gumroadUrl}>
+                  Get 111 Prompts Pack
+                </ProductPurchaseLink>
+              </div>
+            </div>
           </div>
           {details.length > 0 ? (
             <section aria-labelledby="details-heading" className="mt-8">

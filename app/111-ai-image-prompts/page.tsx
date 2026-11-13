@@ -113,7 +113,7 @@ export default async function ProductPage() {
         <div className="absolute -right-40 top-12 -z-10 size-[30rem] rounded-full border border-primary/10" aria-hidden="true" />
         <div className="absolute -right-20 top-32 -z-10 size-[22rem] rounded-full border border-primary/10" aria-hidden="true" />
         <div className="container-page grid min-h-[650px] items-center gap-14 py-16 md:grid-cols-[1.05fr_0.95fr] md:py-24">
-          <div className="max-w-2xl">
+          <div className="min-w-0 max-w-2xl">
             <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card/70 px-3 py-1.5 text-xs font-medium text-brand-text">
               <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
               A visual field guide for your next idea
@@ -164,7 +164,7 @@ export default async function ProductPage() {
           <ProductPdfViewer src={settings.samplePdfUrl} />
 
           <div className="mt-7 grid overflow-hidden rounded-[1.75rem] border border-border bg-card text-card-foreground md:grid-cols-[1fr_0.78fr]">
-            <div className="p-6 sm:p-9">
+            <div className="min-w-0 p-6 sm:p-9">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-text">Like what you see? Keep creating.</p>
               <h3 className="mt-4 max-w-xl text-3xl font-semibold leading-tight tracking-[-0.05em] sm:text-4xl">
                 Turn Your Imagination Into Something Extraordinary.
@@ -180,7 +180,7 @@ export default async function ProductPage() {
                 ))}
               </ul>
             </div>
-            <div className="flex flex-col justify-center border-t border-border bg-background p-6 sm:p-9 md:border-l md:border-t-0">
+            <div className="min-w-0 flex flex-col justify-center border-t border-border bg-background p-6 sm:p-9 md:border-l md:border-t-0">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Your next creative starting point</p>
               <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <p className="text-5xl font-semibold tracking-[-0.08em] text-brand-text">111</p>
@@ -282,7 +282,7 @@ export default async function ProductPage() {
               Explore the digital pack on Gumroad, review its checkout details, and decide if it belongs in your creative toolkit.
             </p>
           </div>
-          <div className="w-full rounded-2xl border border-border bg-card p-5 text-card-foreground sm:min-w-72 sm:p-6">
+          <div className="min-w-0 w-full rounded-2xl border border-border bg-card p-5 text-card-foreground sm:min-w-72 sm:p-6">
             <Price cents={price.currentPriceCents} oldCents={price.originalPriceCents} discount={price.discountPercentage} />
             <p className="mt-2 text-xs text-muted-foreground">111 prompts · downloadable PDF</p>
             <ProductPurchaseLink

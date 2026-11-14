@@ -103,6 +103,33 @@ export default async function PromptPage({ params }: { params: Params }) {
       <div className="mt-6 grid gap-8 min-[56rem]:grid-cols-2 xl:gap-12">
         <div className="min-[56rem]:sticky min-[56rem]:top-24 min-[56rem]:self-start">
           <PromptGallery slug={prompt.slug} title={prompt.title} images={prompt.images} />
+          <div className="mt-4 flex justify-center">
+            <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-center text-card-foreground shadow-sm sm:p-6">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-text">
+                111 AI Image Prompts Pack
+              </p>
+              <div className="mt-2 flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
+                {price.discountPercentage > 0 ? (
+                  <span className="text-base text-muted-foreground line-through">
+                    {formatProductPrice(price.originalPriceCents)}
+                  </span>
+                ) : null}
+                <span className="text-3xl font-semibold tracking-tight text-foreground">
+                  {formatProductPrice(price.currentPriceCents)}
+                </span>
+                {price.discountPercentage > 0 ? (
+                  <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground">
+                    {price.discountPercentage}% off
+                  </span>
+                ) : null}
+              </div>
+              <div className="mt-4 flex justify-center">
+                <ProductPurchaseLink href={productSettings.gumroadUrl}>
+                  Get 111 Prompts Pack
+                </ProductPurchaseLink>
+              </div>
+            </div>
+          </div>
         </div>
 
         <article className="min-w-0">
@@ -136,33 +163,6 @@ export default async function PromptPage({ params }: { params: Params }) {
               className="h-10 w-[5.75rem] gap-1 px-1.5 text-[11px] sm:h-12 sm:w-40 sm:gap-1.5 sm:px-5 sm:text-sm"
             />
             <ShareActions url={canonical} title={prompt.title} />
-          </div>
-          <div className="mt-4 flex justify-center">
-            <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-center text-card-foreground shadow-sm sm:p-6">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-text">
-                111 AI Image Prompts Pack
-              </p>
-              <div className="mt-2 flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
-                {price.discountPercentage > 0 ? (
-                  <span className="text-base text-muted-foreground line-through">
-                    {formatProductPrice(price.originalPriceCents)}
-                  </span>
-                ) : null}
-                <span className="text-3xl font-semibold tracking-tight text-foreground">
-                  {formatProductPrice(price.currentPriceCents)}
-                </span>
-                {price.discountPercentage > 0 ? (
-                  <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground">
-                    {price.discountPercentage}% off
-                  </span>
-                ) : null}
-              </div>
-              <div className="mt-4 flex justify-center">
-                <ProductPurchaseLink href={productSettings.gumroadUrl}>
-                  Get 111 Prompts Pack
-                </ProductPurchaseLink>
-              </div>
-            </div>
           </div>
           {details.length > 0 ? (
             <section aria-labelledby="details-heading" className="mt-8">

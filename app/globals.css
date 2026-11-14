@@ -170,6 +170,19 @@
   }
 }
 
+/* Override the defaults injected by Gumroad's button script. */
+a.gumroad-button {
+  border: 1px solid #000 !important;
+  background-color: #ff90e8 !important;
+  color: #000 !important;
+}
+
+a.gumroad-button:hover,
+a.gumroad-button:focus-visible {
+  border-color: #000 !important;
+  background-color: #ff90e8 !important;
+}
+
 .prompt-gallery-frame {
   aspect-ratio: var(--prompt-gallery-aspect-ratio);
 }

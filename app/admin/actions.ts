@@ -421,14 +421,21 @@ export async function refreshPromptPublicContentAction(promptId: string) {
 export async function updateImageMetadataAction(formData: FormData) {
   const { supabase } = await authorizeAdminAction()
   const id = value(formData, 'id')
+  const { data: image, error: loadError } = await supabase
+    .from('prompt_images')
+    .select('prompt_id')
+    .eq('id', id)
+    .single()
+  if (loadError) throw new Error(`Could not find image: ${loadError.message}`)
   const { error } = await supabase.from('prompt_images').update({
     alt_text: value(formData, 'alt_text'),
     caption: optional(formData, 'caption'),
-  }).eq('id', id)
+  }).eq('id', id).select('id').single()
   if (error) throw new Error(`Could not update image details: ${error.message}`)
   revalidatePublicContent()
   revalidatePath('/', 'layout')
   revalidatePath('/admin/media')
+  revalidatePath(`/admin/prompts/${image.prompt_id}/edit/`)
 }
 
 export async function setPrimaryImageAction(formData: FormData) {
@@ -470,16 +477,33 @@ export async function movePromptImageAction(formData: FormData) {
 export async function deletePromptImageAction(formData: FormData) {
   const { supabase } = await authorizeAdminAction()
   const id = value(formData, 'id')
-  const { data: image, error: loadError } = await supabase.from('prompt_images').select('imagekit_file_id').eq('id', id).single()
+  const { data: image, error: loadError } = await supabase
+    .from('prompt_images')
+    .select('prompt_id,is_primary,imagekit_file_id')
+    .eq('id', id)
+    .single()
   if (loadError) throw new Error(`Could not find image: ${loadError.message}`)
-  if (!image.imagekit_file_id) {
-    throw new Error('This image has not been migrated to ImageKit. Run the ImageKit migration script before deleting it.')
-  }
   const { error } = await supabase.from('prompt_images').delete().eq('id', id)
   if (error) throw new Error(`Could not remove image metadata: ${error.message}`)
+  if (image.is_primary) {
+    const { data: nextImage, error: nextImageError } = await supabase
+      .from('prompt_images')
+      .select('id')
+      .eq('prompt_id', image.prompt_id)
+      .order('sort_order')
+      .limit(1)
+      .maybeSingle()
+    if (nextImageError) throw new Error(`Image was removed, but the next primary image could not be selected: ${nextImageError.message}`)
+    if (nextImage) {
+      const { error: primaryError } = await supabase.from('prompt_images').update({ is_primary: true }).eq('id', nextImage.id)
+      if (primaryError) throw new Error(`Image was removed, but the next primary image could not be selected: ${primaryError.message}`)
+    }
+  }
   revalidatePublicContent()
   revalidatePath('/', 'layout')
   revalidatePath('/admin/media')
+  revalidatePath(`/admin/prompts/${image.prompt_id}/edit/`)
+  if (!image.imagekit_file_id) return
   try {
     await deleteImageKitFile(image.imagekit_file_id, await getImageKitConfig())
   } catch (cleanupError) {

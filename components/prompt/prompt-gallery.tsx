@@ -58,7 +58,7 @@ export function PromptGallery({
   return (
     <div className="rounded-2xl border border-border/80 bg-card p-2.5 shadow-lg shadow-foreground/10 sm:p-3">
       <div
-        className="prompt-gallery-frame relative isolate max-h-[78vh] overflow-hidden rounded-xl bg-muted"
+        className="prompt-gallery-frame relative isolate w-full max-h-[78vh] overflow-hidden rounded-xl bg-muted"
         style={{ '--prompt-gallery-aspect-ratio': `${current.width} / ${current.height}` } as CSSProperties}
       >
         <Image

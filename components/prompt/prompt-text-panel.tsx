@@ -133,7 +133,7 @@ export function PromptTextPanel({
         ref={textRef}
         className={cn(
           'whitespace-pre-wrap break-words px-4 py-4 font-sans text-[14px] leading-6 text-foreground sm:px-5',
-          isLongPrompt && 'max-h-80 overflow-y-auto overscroll-contain',
+          isLongPrompt && 'max-h-80 overflow-y-auto',
         )}
       >
         {promptText}

@@ -11,9 +11,20 @@ const imageKitImagePattern = {
   pathname: `${imageKitEndpoint.pathname.replace(/\/+$/, '')}/**`,
 }
 
+if (process.env.CLOUDFLARE_WORKERS === '1') {
+  const missingSupabaseVariables = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']
+    .filter((name) => !process.env[name])
+  if (missingSupabaseVariables.length) {
+    throw new Error(
+      `Cloudflare builds require these Supabase build variables: ${missingSupabaseVariables.join(', ')}`,
+    )
+  }
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
+  expireTime: 600,
   experimental: {
     agentUpgrade: 'security',
   },

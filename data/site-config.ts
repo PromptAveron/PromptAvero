@@ -3,7 +3,7 @@ export const siteConfig = {
   tagline: 'A curated library of AI image prompts',
   description:
     'Explore a curated library of powerful AI image prompts. Find inspiration, recreate stunning visuals, and bring your creative ideas to life.',
-  url: (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://promptavero.com').replace(/\/$/, ''),
+  url: (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://promptavero.imgprompts.workers.dev').replace(/\/$/, ''),
   /** Leave empty until a real address is available; the Contact page adapts. */
   contactEmail: '',
   /** Only configured links are rendered in the footer. */

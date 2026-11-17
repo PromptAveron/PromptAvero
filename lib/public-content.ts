@@ -2,7 +2,6 @@ import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { categories as localCategories, prompts as localPrompts, type PromptSummary } from '@/lib/content'
 import { createSupabasePublicClient, hasSupabaseConfig } from '@/lib/supabase/server'
-import { withFallback } from '@/lib/with-fallback'
 import type { Category, Prompt, PromptImage } from '@/types/content'
 
 export interface PublicContent {
@@ -127,7 +126,7 @@ const getCachedPublicContent = unstable_cache(loadPublicContent, ['public-conten
 export const getPublicContent = cache(async (): Promise<PublicContent> => {
   const localContent = { categories: localCategories, prompts: localPrompts }
   if (!hasSupabaseConfig()) return localContent
-  return withFallback(getCachedPublicContent(), localContent)
+  return getCachedPublicContent()
 })
 
 export function toPublicSummary(prompt: Prompt, categories: Category[]): PromptSummary {

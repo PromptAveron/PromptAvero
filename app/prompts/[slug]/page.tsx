@@ -103,7 +103,21 @@ export default async function PromptPage({ params }: { params: Params }) {
       <div className="mt-6 grid gap-8 min-[56rem]:grid-cols-2 xl:gap-12">
         <div className="min-[56rem]:sticky min-[56rem]:top-24 min-[56rem]:self-start">
           <PromptGallery slug={prompt.slug} title={prompt.title} images={prompt.images} />
-          <div className="mt-4 flex justify-center">
+        </div>
+
+        <article className="min-w-0">
+          {category ? (
+            <Link
+              href={categoryPath(category.slug)}
+              className="text-sm font-medium text-brand-text hover:underline"
+            >
+              {category.name}
+            </Link>
+          ) : null}
+          <h1 className="mt-2 text-2xl font-semibold leading-tight sm:text-3xl">{prompt.title}</h1>
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground">{prompt.shortDescription}</p>
+
+          <div className="mt-5 flex justify-center">
             <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-center text-card-foreground shadow-sm sm:p-6">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-text">
                 111 AI Image Prompts Pack
@@ -130,19 +144,6 @@ export default async function PromptPage({ params }: { params: Params }) {
               </div>
             </div>
           </div>
-        </div>
-
-        <article className="min-w-0">
-          {category ? (
-            <Link
-              href={categoryPath(category.slug)}
-              className="text-sm font-medium text-brand-text hover:underline"
-            >
-              {category.name}
-            </Link>
-          ) : null}
-          <h1 className="mt-2 text-2xl font-semibold leading-tight sm:text-3xl">{prompt.title}</h1>
-          <p className="mt-3 text-base leading-relaxed text-muted-foreground">{prompt.shortDescription}</p>
 
           <div className="mt-6">
             <PromptTextPanel
